@@ -81,6 +81,8 @@ runs:
         samples-destination: ${{ inputs.samples-destination }}
         include-plugins: ${{ inputs.include-plugins }}
         signing-key-id: ${{ inputs.signing-key-id }}
+        signing-key-secret: ${{ inputs.signing-key-secret }}
+        signing-org-id: ${{ inputs.signing-org-id }}
 
     - name: Create Release Tag
       if: steps.semantic.outputs.new_release_published == 'true' && inputs.create-release-tag == 'true'
