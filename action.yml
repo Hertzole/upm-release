@@ -63,7 +63,7 @@ runs:
     - name: Publish UPM Package
       if: steps.semantic.outputs.new_release_published == 'true'
       id: upm
-      uses: hertzole/upm-package@main
+      uses: hertzole/upm-package@master
       with:
         package-json: ${{ inputs.package-json }}
         create-branch: ${{ inputs.create-upm-branch }}
