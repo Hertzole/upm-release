@@ -1,0 +1,91 @@
+name: "UPM Release"
+description: "Releases a new version using SemVer, updates the changelog, and publishes a UPM package."
+inputs:
+  package-json:
+    description: "Path to the package.json file (relative to the repository root)."
+    required: false
+    default: "*Packages/*/package.json"
+  create-upm-branch:
+    description: "Whether to create a separate branch for the UPM release."
+    required: false
+    default: "true"
+  upm-branch-name:
+    description: "Name of the branch to create for the UPM release (if create-upm-branch is true)."
+    required: false
+    default: "upm"
+  create-release-tag:
+    description: "Whether to create a release tag for the UPM package."
+    required: false
+    default: "true"
+  skip-ci:
+    description: "Whether to skip CI for the commit."
+    required: false
+    default: "true"
+  remove-tests:
+    description: "Whether to remove the Tests folder."
+    required: false
+    default: "true"
+  include-samples:
+    description: "Whether to keep the Assets/Samples folder."
+    required: false
+    default: "true"
+  samples-destination:
+    description: "The destination path where the package samples that will be moved to 'Samples~' are located."
+    required: false
+    default: "Assets/Samples"
+  include-plugins:
+    description: "Whether to keep the Plugins folder inside the package."
+    required: false
+    default: "true"
+  signing-key-id:
+    description: "Unity service account key ID with permissions to sign packages. Required if signing the package."
+    required: false
+  signing-key-secret:
+    description: "Unity service account key secret with permissions to sign packages. Required if signing the package."
+    required: false
+  signing-org-id:
+    description: "Unity organization ID that the service account belongs to. Required if signing the package."
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Release
+      id: semantic
+      uses: cycjimmy/semantic-release-action@v6
+      with:
+        extra_plugins: |
+          @semantic-release/exec
+          @semantic-release/changelog
+          @semantic-release/git
+        branch: master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish UPM Package
+      if: steps.semantic.outputs.new_release_published == 'true'
+      id: upm
+      uses: hertzole/upm-package@main
+      with:
+        package-json: ${{ inputs.package-json }}
+        create-branch: ${{ inputs.create-upm-branch }}
+        branch-name: ${{ inputs.upm-branch-name }}
+        skip-ci: ${{ inputs.skip-ci }}
+        remove-tests: ${{ inputs.remove-tests }}
+        include-samples: ${{ inputs.include-samples }}
+        samples-destination: ${{ inputs.samples-destination }}
+        include-plugins: ${{ inputs.include-plugins }}
+        signing-key-id: ${{ inputs.signing-key-id }}
+
+    - name: Create Release Tag
+      if: steps.semantic.outputs.new_release_published == 'true' && inputs.create-release-tag == 'true'
+      run: |
+        git tag $TAG ${{ inputs.upm-branch-name }}
+        git push origin --tags
+      env:
+        TAG: package/v${{ steps.semantic.outputs.new_release_version }}
+
+    - name: Upload package to release
+      if: steps.semantic.outputs.new_release_published == 'true' && steps.upm.outputs.created-archive == 'true'
+      run: |
+        gh release upload "v${{ steps.semantic.outputs.new_release_version }}" "${{ steps.upm.outputs.signed-archive }}"
