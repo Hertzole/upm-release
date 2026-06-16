@@ -50,6 +50,14 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Verify .releaserc configuration
+      run: |
+        if [ ! -f .releaserc ]; then
+          echo "Error: .releaserc file not found in the repository root."
+          exit 1
+        fi
+      shell: bash
+
     - name: Release
       id: semantic
       uses: cycjimmy/semantic-release-action@v6
