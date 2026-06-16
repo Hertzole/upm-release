@@ -50,10 +50,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Verify .releaserc configuration
+    - name: Verify .releaserc.yml configuration
       run: |
-        if [ ! -f .releaserc ]; then
-          echo "Error: .releaserc file not found in the repository root."
+        if [ ! -f .releaserc.yml ]; then
+          echo "Error: .releaserc.yml file not found in the repository root."
           exit 1
         fi
       shell: bash
