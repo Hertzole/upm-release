@@ -103,6 +103,6 @@ runs:
 
     - name: Upload package to release
       if: steps.semantic.outputs.new_release_published == 'true' && steps.upm.outputs.created-archive == 'true'
-      run: |
-        gh release upload "v${{ steps.semantic.outputs.new_release_version }}" "${{ steps.upm.outputs.signed-archive }}"
-      shell: bash
+      uses: xresloader/upload-to-github-release@v1
+      with:
+        file: ${{ steps.upm.outputs.signed-archive }}
