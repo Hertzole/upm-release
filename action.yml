@@ -106,3 +106,4 @@ runs:
       uses: xresloader/upload-to-github-release@v1
       with:
         file: ${{ steps.upm.outputs.signed-archive }}
+        update_latest_release: true
